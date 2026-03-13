@@ -8,16 +8,20 @@ required:true
 },
 
 category:{
-type:String
+type:String,
+enum:["Work","Personal","Study"],
+required:true
 },
 
 priority:{
 type:String,
-enum:["High","Medium","Low"]
+enum:["High","Medium","Low"],
+default:"Medium"
 },
 
 status:{
 type:String,
+enum:["Pending","Completed"],
 default:"Pending"
 }
 

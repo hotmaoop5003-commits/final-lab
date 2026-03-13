@@ -1,121 +1,135 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useState } from "react"
+import axios from "axios"
 
-function App() {
-  const [count, setCount] = useState(0)
+const API = import.meta.env.VITE_API_URL
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+function App(){
 
-      <div className="ticks"></div>
+const [tasks,setTasks] = useState([])
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+const [title,setTitle] = useState("")
+const [category,setCategory] = useState("Work")
+const [priority,setPriority] = useState("Medium")
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+const loadTasks = async()=>{
+const res = await axios.get(API+"/tasks")
+setTasks(res.data)
+}
+
+useEffect(()=>{
+loadTasks()
+},[])
+
+const addTask = async()=>{
+
+if(!title) return alert("กรอกชื่องาน")
+
+await axios.post(API+"/tasks",{
+title,
+category,
+priority
+})
+
+setTitle("")
+loadTasks()
+}
+
+const toggleStatus = async(id)=>{
+await axios.put(API+"/tasks/"+id)
+loadTasks()
+}
+
+const priorityColor = (p)=>{
+
+if(p==="High") return "red"
+if(p==="Medium") return "orange"
+return "green"
+
+}
+
+return(
+
+<div style={{padding:"40px",fontFamily:"Arial"}}>
+
+<h1>Smart Task Board</h1>
+
+<div>
+
+<input
+placeholder="Task name"
+value={title}
+onChange={(e)=>setTitle(e.target.value)}
+/>
+
+<select onChange={(e)=>setCategory(e.target.value)}>
+
+<option>Work</option>
+<option>Personal</option>
+<option>Study</option>
+
+</select>
+
+<select onChange={(e)=>setPriority(e.target.value)}>
+
+<option>High</option>
+<option>Medium</option>
+<option>Low</option>
+
+</select>
+
+<button onClick={addTask}>
+Add Task
+</button>
+
+</div>
+
+<hr/>
+
+{tasks.map(task=>(
+
+<div
+key={task._id}
+style={{
+border:"1px solid #ddd",
+padding:"10px",
+margin:"10px 0"
+}}
+>
+
+<b>{task.title}</b>
+
+<div>
+
+Category: {task.category}
+
+</div>
+
+<div
+style={{
+color:priorityColor(task.priority)
+}}
+>
+
+Priority: {task.priority}
+
+</div>
+
+<button
+onClick={()=>toggleStatus(task._id)}
+>
+
+{task.status}
+
+</button>
+
+</div>
+
+))}
+
+</div>
+
+)
+
 }
 
 export default App
